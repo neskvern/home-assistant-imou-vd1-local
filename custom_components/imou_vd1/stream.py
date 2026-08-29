@@ -42,7 +42,7 @@ class ImouVd1StreamView(HomeAssistantView):
 
     url = "/api/imou_vd1/stream/{entry_id}"
     name = "api:imou_vd1:stream"
-    requires_auth = True
+    requires_auth = False
 
     def __init__(self, hass: HomeAssistant) -> None:
         self._hass = hass

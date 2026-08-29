@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 
 from homeassistant.components.binary_sensor import (
@@ -14,6 +15,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .entity import ImouVd1Entity
+
+_LOGGER = logging.getLogger(__name__)
 
 _ACTION_RE = re.compile(rb'"Action"\s*:\s*"(\w+)"')
 
@@ -45,7 +48,7 @@ class ImouVd1MotionSensor(ImouVd1Entity, BinarySensorEntity):
         self._token: int | None = None
 
     async def async_added_to_hass(self) -> None:
-        self._token = self._conn.subscribe_events(self._handle_event, codes=["VideoMotion"])
+        self._token = self._conn.subscribe_events(self._handle_event, codes=["All"])
 
     async def async_will_remove_from_hass(self) -> None:
         if self._token is not None:
@@ -53,6 +56,8 @@ class ImouVd1MotionSensor(ImouVd1Entity, BinarySensorEntity):
             self._token = None
 
     def _handle_event(self, body: bytes) -> None:
+        _LOGGER.debug("Event: %s", body)
+
         match = _ACTION_RE.search(body)
         is_on = match.group(1) != b"Stop" if match else True
 

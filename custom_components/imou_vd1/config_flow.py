@@ -32,8 +32,6 @@ DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_HOST): str,
         vol.Required(CONF_USERNAME, default="admin"): str,
         vol.Required(CONF_PASSWORD): str,
-        vol.Required(CONF_DVRIP_PORT, default=DEFAULT_DVRIP_PORT): int,
-        vol.Required(CONF_HTTP_PORT, default=DEFAULT_HTTP_PORT): int,
         vol.Required(CONF_CHANNEL, default=DEFAULT_CHANNEL): int,
         vol.Required(CONF_STREAM, default=DEFAULT_STREAM): int,
         vol.Optional(CONF_IMOU_APP_ID): str,
@@ -71,6 +69,9 @@ class ImouVd1ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            user_input[CONF_DVRIP_PORT] = DEFAULT_DVRIP_PORT
+            user_input[CONF_HTTP_PORT] = DEFAULT_HTTP_PORT
+
             await self.async_set_unique_id(f"{user_input[CONF_HOST]}:{user_input[CONF_CHANNEL]}")
             self._abort_if_unique_id_configured()
 

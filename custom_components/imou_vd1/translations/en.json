@@ -7,8 +7,6 @@
           "host": "Host",
           "username": "Username",
           "password": "Password",
-          "dvrip_port": "DVRIP port",
-          "http_port": "HTTP video port",
           "channel": "Channel",
           "stream": "Stream (0=main, 1=sub)",
           "imou_app_id": "Imou Cloud App ID (optional)",
