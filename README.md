@@ -31,16 +31,16 @@ Add the integration via **Settings → Devices & Services → Add Integration �
 Structure:
 
 ```
+cli.py                              # Standalone CLI for testing connection.py's protocol in isolation
 custom_components/imou_vd1/
 ├── __init__.py        # Config entry setup/teardown
 ├── config_flow.py      # UI-based configuration flow
 ├── const.py             # Constants (DOMAIN etc.)
-├── lib.py                # Protocol library: wake-up, DVRIP heartbeat, HTTP/8086 streaming, eventManager
+├── connection.py          # Protocol library: wake-up, DVRIP heartbeat, HTTP/8086 streaming, eventManager
 ├── stream.py               # HTTP view that exposes the stream for go2rtc (manual config)
 ├── binary_sensor.py           # Motion sensor driven by eventManager events
 ├── button.py                    # Button entity to force a cloud wake-up
 ├── entity.py                      # Shared device_info() helper
-├── cli.py                        # Standalone CLI for testing lib.py in isolation
 ├── manifest.json                # HA integration manifest
 ├── strings.json                  # Config flow UI text (source of truth)
 └── translations/                  # Translations for the config flow UI (en.json)
