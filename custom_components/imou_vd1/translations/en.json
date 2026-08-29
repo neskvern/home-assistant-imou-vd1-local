@@ -1,0 +1,40 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Imou VD1",
+        "data": {
+          "host": "Host",
+          "username": "Username",
+          "password": "Password",
+          "dvrip_port": "DVRIP port",
+          "http_port": "HTTP video port",
+          "channel": "Channel",
+          "stream": "Stream (0=main, 1=sub)",
+          "imou_app_id": "Imou Cloud App ID (optional)",
+          "imou_app_secret": "Imou Cloud App Secret (optional)",
+          "imou_device_id": "Imou Cloud Device ID (optional)",
+          "imou_data_center": "Imou Cloud data center"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the camera"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "entity": {
+    "button": {
+      "wake": {
+        "name": "Wake"
+      }
+    },
+    "binary_sensor": {
+      "motion": {
+        "name": "Motion"
+      }
+    }
+  }
+}

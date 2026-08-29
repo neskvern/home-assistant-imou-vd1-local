@@ -1,0 +1,10 @@
+{
+  "domain": "imou_vd1",
+  "name": "Imou VD1",
+  "codeowners": ["@neskvern"],
+  "config_flow": true,
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "requirements": [],
+  "version": "0.1.0"
+}
