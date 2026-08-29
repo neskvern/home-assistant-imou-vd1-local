@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import json
 import logging
-import re
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -18,7 +18,11 @@ from .entity import ImouVd1Entity
 
 _LOGGER = logging.getLogger(__name__)
 
-_ACTION_RE = re.compile(rb'"Action"\s*:\s*"(\w+)"')
+# Observed DVRIP event Codes for motion-adjacent detections; the camera
+# picks whichever is most specific (e.g. SmartMotionHuman for a person)
+# rather than always sending plain VideoMotion, so all known variants
+# are treated as "motion" here.
+_MOTION_CODES = {"VideoMotion", "SmartMotionHuman", "SmartMotionVehicle"}
 
 
 async def async_setup_entry(
@@ -48,7 +52,14 @@ class ImouVd1MotionSensor(ImouVd1Entity, BinarySensorEntity):
         self._token: int | None = None
 
     async def async_added_to_hass(self) -> None:
-        self._token = self._conn.subscribe_events(self._handle_event, codes=["All"])
+        # codes=None: the camera's own eventManager.attach already asks
+        # for every code ("All"); which of those are motion is decided
+        # below by parsing each event's actual "Code" field, not by
+        # CameraConnection's substring-based subscriber filter (that
+        # filter checks for the literal text of `codes` inside the raw
+        # body, so it can't express "match any of several codes").
+        self._token = self._conn.subscribe_events(self._handle_event, codes=None)
+        _LOGGER.debug("Subscribed to events")
 
     async def async_will_remove_from_hass(self) -> None:
         if self._token is not None:
@@ -58,11 +69,19 @@ class ImouVd1MotionSensor(ImouVd1Entity, BinarySensorEntity):
     def _handle_event(self, body: bytes) -> None:
         _LOGGER.debug("Event: %s", body)
 
-        match = _ACTION_RE.search(body)
-        is_on = match.group(1) != b"Stop" if match else True
-
-        if is_on == self._attr_is_on:
+        try:
+            payload = json.loads(body)
+        except ValueError:
             return
 
-        self._attr_is_on = is_on
-        self.schedule_update_ha_state()
+        for event in payload.get("params", {}).get("eventList", []):
+            if event.get("Code") not in _MOTION_CODES:
+                continue
+
+            is_on = event.get("Action") != "Stop"
+            if is_on == self._attr_is_on:
+                return
+
+            self._attr_is_on = is_on
+            self.schedule_update_ha_state()
+            return
