@@ -458,7 +458,7 @@ def listen_events(sock, session):
     """Attach to the camera's eventManager (codes=All) and print
     "[Event]" to stderr for every pushed event, forever."""
     payload = json.dumps(
-        {"id": 1, "method": "eventManager.attach", "params": {"codes": ["All"]}, "session": session},
+        {"id": 1, "method": "eventManager.attach", "params": {"codes": ["SmartMotionHuman"]}, "session": session},
         separators=(",", ":"),
     ).encode("latin-1") + b"\n\x00"
 
