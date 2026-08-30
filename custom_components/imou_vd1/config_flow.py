@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import voluptuous as vol
@@ -9,7 +10,12 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
 
-from .connection import IMOU_DATA_CENTERS, open_dvrip_connection
+from .connection import (
+    IMOU_DATA_CENTERS,
+    WAKE_SETTLE_DELAY,
+    open_dvrip_connection,
+    wake_camera,
+)
 from .const import (
     CONF_CHANNEL,
     CONF_DVRIP_PORT,
@@ -47,16 +53,33 @@ DATA_SCHEMA = vol.Schema(
 def _test_connection(user_input: dict[str, Any]) -> None:
     """Quick synchronous connectivity probe: dial + login, then close.
 
-    Deliberately does not wake the camera first - if the camera is
-    asleep and no Imou Cloud credentials were entered, this legitimately
-    fails, and a retry is one click away.
+    Tries a bare connect first; if that fails, wakes the camera via the
+    Imou Cloud API (a no-op if no cloud credentials were entered) and
+    retries once - same wake-and-retry-once pattern as
+    connect_dvrip_or_wake in connection.py. If no cloud credentials were
+    given, the retry fails the same way the bare attempt did.
     """
-    sock, _session = open_dvrip_connection(
-        user_input[CONF_HOST],
-        user_input[CONF_DVRIP_PORT],
-        user_input[CONF_USERNAME],
-        user_input[CONF_PASSWORD],
-    )
+    try:
+        sock, _session = open_dvrip_connection(
+            user_input[CONF_HOST],
+            user_input[CONF_DVRIP_PORT],
+            user_input[CONF_USERNAME],
+            user_input[CONF_PASSWORD],
+        )
+    except Exception:
+        wake_camera(
+            user_input.get(CONF_IMOU_APP_ID),
+            user_input.get(CONF_IMOU_APP_SECRET),
+            user_input.get(CONF_IMOU_DEVICE_ID),
+            user_input[CONF_IMOU_DATA_CENTER],
+        )
+        time.sleep(WAKE_SETTLE_DELAY)
+        sock, _session = open_dvrip_connection(
+            user_input[CONF_HOST],
+            user_input[CONF_DVRIP_PORT],
+            user_input[CONF_USERNAME],
+            user_input[CONF_PASSWORD],
+        )
     sock.close()
 
 
